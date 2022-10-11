@@ -18,6 +18,9 @@ let reqAnimation;
 // This is a variable to store the amounts of clicks.
 let clickCount = 0;
 
+
+
+
 /* ==============================  BUILDING THE CANVAS GRID  ============================== */
 
 // Defining the canvas size, we can modify this values if we want to resize the grid
@@ -28,11 +31,15 @@ const h = (canvas.height = 400);
 const cols = w / resolution;
 const rows = h / resolution;
 
+/* ============ P U R E ============ */
+// Refactored by passing cols and rows as arguments, we'll always get the same 0's array resulting for the same inputs
 // Creating an empty canvas
-function buildEmptyGrid() {
+function buildEmptyGrid(cols, rows) {
   return new Array(cols).fill(0).map(() => new Array(rows).fill(0));
 }
 
+/* ============ I M P U R E ============ */
+// random produces differents result each time
 // Creating a NEW random canvas
 function buildRandomGrid() {
   return new Array(cols)
@@ -40,8 +47,12 @@ function buildRandomGrid() {
     .map(() => new Array(rows).fill(0).map(() => Math.round(Math.random())));
 }
 
+/* ============ P U R E ============ */
+// this one was refactored from impure to pure f(x) by passing the resolution and context as arguments
+/* ============ I M P U R E ============ */
+// Maybe the fact of drawing a grid makes it impure though?? Since it prints to the screen
 // Function to actually draw the grid
-function render(grid) {
+function render(grid, resolution, ctx) {
   // Since the grid is a 2d array, we use two for loops to iterate through all the values
   for (let col = 0; col < grid.length; col++) {
     for (let row = 0; row < grid[col].length; row++) {
@@ -64,16 +75,21 @@ function render(grid) {
 }
 
 // To visualize the inital empty grid
-let emptyGrid = buildEmptyGrid();
+let emptyGrid = buildEmptyGrid(cols, rows);
 let randGrid = buildRandomGrid();
 
-render(emptyGrid);
+render(emptyGrid, resolution, ctx);
+
+
+
 
 /* ==============================  DRAWING INITIAL CONFIGURATION  ============================== */
 
 // Allow the user to draw an initial configuration pattern by clicking the canvas cells
 canvas.addEventListener("click", colorCell);
 
+/* ============ I M P U R E ============ */
+// because it references resolution and emptyGrid
 function colorCell(event) {
   // we can log the event of every click and if we look into the offset attributes, we get the coordinates (in pixels) of the click
 
@@ -101,20 +117,26 @@ function colorCell(event) {
   // the +0.5 and -1 are to adjust the filling positioning, so we don't "erase" the cell borders
 }
 
+
+
+
 /* ==============================  BUTTONS FUNCTIONALITY  ============================== */
 
+/* ============ I M P U R E ============ */
+// because it references and modifies variables outside its scope
 // Each frame update, rewrites the grid with the values of the grid's next generation
 function update() {
   if (randomMode === true) {
     randGrid = nextGeneration(randGrid);
-    render(randGrid);
+    render(randGrid, resolution, ctx);
   } else {
     emptyGrid = nextGeneration(emptyGrid);
-    render(emptyGrid);
+    render(emptyGrid, resolution, ctx);
   }
   reqAnimation = requestAnimationFrame(update);
 }
 
+/* ============ I M P U R E ============ */
 play.addEventListener("click", function () {
   // Give life to the game animation, to see the generations pass
   reqAnimation = requestAnimationFrame(update);
@@ -128,6 +150,7 @@ play.addEventListener("click", function () {
   document.querySelector(".ico-gen").setAttribute("src", "./image/duck.png");
 });
 
+/* ============ I M P U R E ============ */
 stop.addEventListener("click", function () {
   //Pause the live animation
   cancelAnimationFrame(reqAnimation);
@@ -140,6 +163,7 @@ stop.addEventListener("click", function () {
 // Clears the grid fot both game mode cases
 clear.addEventListener("click", clearAll);
 
+/* ============ I M P U R E ============ */
 function clearAll() {
   // Sets the grids back to a 0's matrix
   emptyGrid = emptyGrid.map(function (row) {
@@ -166,6 +190,8 @@ function clearAll() {
 }
 
 reset.addEventListener("click", resetAll);
+
+/* ============ P U R E ============ */
 // Resets the grid fot both game mode cases
 function resetAll() {
   location.reload();
@@ -174,16 +200,23 @@ function resetAll() {
 // To choose a random initial game configuration by clicking a button
 random.addEventListener("click", renderRandomGrid);
 
+/* ============ I M P U R E ============ */
+// modifies randomMode
 function renderRandomGrid() {
   randomMode = true; // flag to indicate the games Mode of playing
-  render(buildRandomGrid());
+  render(buildRandomGrid(), resolution, ctx);
   document.querySelector(".ico-gen").setAttribute("src", "./image/duck.png");
 }
 
+
+
+
 /* ==================================  GAME LOGIC  ================================== */
 
-// Function that creates the next cells generation
 let acountGen = 0; //generation accumulator
+
+/* ============ I M P U R E ============ */
+// Function that creates the next cells generation
 function nextGeneration(grid) {
   // making a copy of the current grid to edit on the next gen
   const nextGeneration = grid.map((arr) => [...arr]);
@@ -255,7 +288,13 @@ function nextGeneration(grid) {
   return nextGeneration;
 }
 
-/* ===============================   text section   =============================== */
+
+
+
+
+/* ===============================   TEXT SECTION   =============================== */
+
+/* ============ I M P U R E ============ */
 //Text indicating the number and generations that have passed.
 function genText() {
   document.querySelector(
@@ -263,6 +302,8 @@ function genText() {
   ).textContent = ` ${acountGen} generations have passed`;
   return (clickCount = 0);
 }
+
+/* ============ I M P U R E ============ */
 //Text that you get when you click on clear, it also changes the color of the info-grid to red and adds a picture of a nuclear bomb explosion
 function genTextClear() {
   document.querySelector(".info-grid").textContent = "You have dropped a nuclear bomb!";
